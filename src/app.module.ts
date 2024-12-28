@@ -5,9 +5,10 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { UserInterceptor } from './utils/interceptors/user.interceptor';
 import { AllExceptionsFilter } from './utils/filters/httpExceptionFilter';
 import { JwtAuthService } from './utils/token.generators';
+import { OrderModule } from './order/order.module';
 
 @Module({
-  imports: [ConfigModule, AuthModule],
+  imports: [ConfigModule, AuthModule, OrderModule],
   providers: [
     JwtAuthService,
     {
