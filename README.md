@@ -74,8 +74,6 @@ $ npm run test auth.service.spec.ts
 $ npm run test:e2e
 ```
 
-...
-
 ```bash
 
 ## Contributing

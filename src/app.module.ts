@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ConfigModule } from './utils';
 import { AuthModule } from './auth/auth.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
@@ -10,9 +8,7 @@ import { JwtAuthService } from './utils/token.generators';
 
 @Module({
   imports: [ConfigModule, AuthModule],
-  controllers: [AppController],
   providers: [
-    AppService,
     JwtAuthService,
     {
       provide: APP_INTERCEPTOR,
