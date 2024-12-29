@@ -67,7 +67,7 @@ export class AuthService {
   }
 
   private async createUser(email: string, password: string, role?: UserRole) {
-    return this.prismaService.user.create({
+    return await this.prismaService.user.create({
       data: {
         email,
         password,
@@ -77,15 +77,19 @@ export class AuthService {
   }
 
   public async getUserByEmail(email: string) {
-    return this.prismaService.user.findUnique({
+    return await this.prismaService.user.findUnique({
       where: { email },
     });
   }
 
-  public async getUserById(id: string) {
-    return this.prismaService.user.findUnique({
+  public async getUserById(id: string): Promise<User> {
+    const user = await this.prismaService.user.findUnique({
       where: { id },
     });
+
+    this.checkUserExistence(user);
+
+    return user;
   }
 
   private checkUserExistence(user: User) {

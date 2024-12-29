@@ -1,34 +1,70 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Patch,
+  Body,
+  Param,
+  HttpStatus,
+} from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
+import { CurrentUser } from 'src/utils/decorators';
+import { User } from '@prisma/client';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 
+// Grouping the endpoints in Swagger
+@ApiTags('Orders')
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
+  /************************ CREATE ORDER *****************************/
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.orderService.create(createOrderDto);
+  @ApiOperation({ summary: 'Create a new order' })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Order successfully created.',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Validation failed or bad request.',
+  })
+  public create(
+    @CurrentUser() user: User,
+    @Body() createOrderDto: CreateOrderDto,
+  ) {
+    return this.orderService.createOrder(user.id, createOrderDto);
   }
 
-  @Get()
-  findAll() {
-    return this.orderService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.orderService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.orderService.update(+id, updateOrderDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.orderService.remove(+id);
+  /************************ MARK ORDER AS COMPLETED*****************************/
+  @Patch(':id/complete')
+  @ApiOperation({ summary: 'Mark an order as completed' })
+  @ApiParam({
+    name: 'id',
+    description: 'The ID of the order to mark as completed',
+    type: String,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Order successfully marked as completed.',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Only admins can mark orders as completed.',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Order not found.',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description:
+      "Order must be in 'PROCESSING' state to be marked as 'COMPLETED'.",
+  })
+  public async markAsCompleted(
+    @CurrentUser() user: User,
+    @Param('id') orderId: string,
+  ) {
+    return await this.orderService.markOrderAsCompleted(user.id, orderId);
   }
 }
