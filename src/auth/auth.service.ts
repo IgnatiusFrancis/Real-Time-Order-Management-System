@@ -3,7 +3,7 @@ import * as bcrypt from 'bcryptjs';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { JwtAuthService } from '../utils/token.generators';
 import { PrismaService } from '../utils/prisma';
-import { User } from '@prisma/client';
+import { User, UserRole } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -26,14 +26,16 @@ export class AuthService {
     }
   }
 
-  async signup(createAuthDto: CreateAuthDto) {
+  async signup(createAuthDto: CreateAuthDto, role?: UserRole) {
     try {
       await this.checkUserExists(createAuthDto.email);
 
       const hashedPassword = await bcrypt.hash(createAuthDto.password, 10);
+
       const newUser = await this.createUser(
         createAuthDto.email,
         hashedPassword,
+        role ? role : null,
       );
       return this.formatSignupResponse(newUser);
     } catch (error) {
@@ -64,11 +66,12 @@ export class AuthService {
     }
   }
 
-  private async createUser(email: string, password: string) {
+  private async createUser(email: string, password: string, role?: UserRole) {
     return this.prismaService.user.create({
       data: {
         email,
         password,
+        role,
       },
     });
   }

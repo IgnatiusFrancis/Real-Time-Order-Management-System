@@ -1,28 +1,53 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Res,
-} from '@nestjs/common';
-import { Response } from 'express';
+import { Controller, Post, Body, HttpStatus } from '@nestjs/common';
+
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { UserRole } from '@prisma/client';
 
 @Controller('auth/')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('signin')
-  login(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.signin(createAuthDto);
+  /************************ USER SIGNUP *****************************/
+  @Post('user/signup')
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'User successfully registered.',
+  })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Bad Request.' })
+  async userSignup(@Body() createAuthDto: CreateAuthDto): Promise<any> {
+    return await this.authService.signup(createAuthDto);
   }
 
-  @Post('signup')
-  signup(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.signup(createAuthDto);
+  /************************ ADMIN SIGNUP *****************************/
+  @Post('admin/signup')
+  @ApiOperation({ summary: 'Register admin' })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Admin successfully registered.',
+  })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Bad Request.' })
+  async adminSignup(
+    @Body() createAuthDto: CreateAuthDto,
+    role = UserRole.ADMIN,
+  ): Promise<any> {
+    return await this.authService.signup(createAuthDto, role);
+  }
+
+  /************************ LOGIN *****************************/
+  @Post('login')
+  @ApiOperation({ summary: 'Authenticate a user' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'User successfully authenticated.',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Unauthorized.',
+  })
+  async login(@Body() createAuthDto: CreateAuthDto): Promise<any> {
+    return await this.authService.signin(createAuthDto);
   }
 }
