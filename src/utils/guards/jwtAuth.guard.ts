@@ -18,10 +18,11 @@ export class JwtGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
+
     const jwt = request.headers['authorization']?.split(' ')[1];
     if (!jwt) {
       throw new HttpException(
-        'Invalid or expired token, please login',
+        'Token not provided, please login.',
         HttpStatus.UNAUTHORIZED,
       );
     }

@@ -25,7 +25,22 @@ export const setupSwagger = (app: INestApplication) => {
     .setTitle(swaggerConfig?.docTitle)
     .setDescription(swaggerConfig?.docDescription)
     .setVersion(swaggerConfig?.docVersion)
-    .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        in: 'header',
+        description: 'Enter your bearer token',
+      },
+      'bearer',
+    )
+    .addSecurity('bearer', {
+      type: 'http',
+      scheme: 'bearer',
+      in: 'header',
+      bearerFormat: 'JWT', // Optional, just for information, can be left out
+    })
     .build();
 
   const documentOptions: SwaggerDocumentOptions = {

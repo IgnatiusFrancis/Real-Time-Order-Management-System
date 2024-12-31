@@ -2,8 +2,9 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { PrismaService } from 'src/utils';
-import { OrderStatus, Prisma, UserRole } from '@prisma/client';
+import { Order, OrderStatus, Prisma, UserRole } from '@prisma/client';
 import { AuthService } from 'src/auth/auth.service';
+import { GetResponse } from 'src/utils/interface/response.interface';
 
 @Injectable()
 export class OrderService {
@@ -12,7 +13,10 @@ export class OrderService {
     private readonly authService: AuthService,
   ) {}
 
-  public async createOrder(userId: string, createOrderDto: CreateOrderDto) {
+  public async createOrder(
+    userId: string,
+    createOrderDto: CreateOrderDto,
+  ): Promise<GetResponse<any>> {
     await this.authService.getUserById(userId);
 
     const { description, specifications, quantity, metadata } = createOrderDto;
@@ -40,9 +44,12 @@ export class OrderService {
       });
 
       return {
+        status: true,
         message: 'Order created successfully',
-        order: result.order,
-        chatRoom: result.chatRoom,
+        data: {
+          order: result.order,
+          chatRoom: result.chatRoom,
+        },
       };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientValidationError) {
@@ -55,15 +62,11 @@ export class OrderService {
     }
   }
 
-  public async markOrderAsCompleted(userId: string, orderId: string) {
-    const user = await this.authService.getUserById(userId);
-
-    if (user.role !== UserRole.ADMIN) {
-      throw new HttpException(
-        'Only admins can mark orders as completed.',
-        HttpStatus.FORBIDDEN,
-      );
-    }
+  public async markOrderAsCompleted(
+    userId: string,
+    orderId: string,
+  ): Promise<GetResponse<Order>> {
+    await this.authService.getUserById(userId);
 
     const order = await this.prismaService.order.findUnique({
       where: { id: orderId },
@@ -75,7 +78,7 @@ export class OrderService {
 
     if (order.status !== OrderStatus.PROCESSING) {
       throw new HttpException(
-        `Order must be in 'PROCESSING' state to be marked as 'COMPLETED'. Current state: ${order.status}`,
+        `Order must be in ${OrderStatus.PROCESSING} state to be marked as ${OrderStatus.COMPLETED}. Current state: ${order.status}`,
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -86,8 +89,9 @@ export class OrderService {
     });
 
     return {
-      message: 'Order marked as completed successfully.',
-      order: updatedOrder,
+      status: true,
+      message: 'Order successfully completed.',
+      data: updatedOrder,
     };
   }
 }

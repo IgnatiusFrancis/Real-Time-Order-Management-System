@@ -5,12 +5,21 @@ import {
   Body,
   Param,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { CurrentUser } from 'src/utils/decorators';
-import { User } from '@prisma/client';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { User, UserRole } from '@prisma/client';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { JwtGuard } from 'src/utils';
+import { Role } from 'src/utils/decorators/role.decorator';
 
 // Grouping the endpoints in Swagger
 @ApiTags('Orders')
@@ -19,6 +28,8 @@ export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   /************************ CREATE ORDER *****************************/
+  @ApiBearerAuth('bearer')
+  @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: 'Create a new order' })
   @ApiResponse({
@@ -37,6 +48,9 @@ export class OrderController {
   }
 
   /************************ MARK ORDER AS COMPLETED*****************************/
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
+  @Role(UserRole.ADMIN)
   @Patch(':id/complete')
   @ApiOperation({ summary: 'Mark an order as completed' })
   @ApiParam({

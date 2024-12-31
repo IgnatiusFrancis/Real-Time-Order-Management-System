@@ -35,7 +35,7 @@ export class AuthService {
       const newUser = await this.createUser(
         createAuthDto.email,
         hashedPassword,
-        role ? role : null,
+        role ? role : UserRole.USER,
       );
       return this.formatSignupResponse(newUser);
     } catch (error) {
