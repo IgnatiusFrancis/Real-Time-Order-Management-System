@@ -70,12 +70,13 @@ model Message {
   content   String
   createdAt DateTime @default(now())
 
-  userId     String
-  user       User     @relation("UserMessages", fields: [userId], references: [id], onDelete: Cascade)
+  sender   User   @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId String
+
   chatRoomId String
   chatRoom   ChatRoom @relation("ChatRoomMessages", fields: [chatRoomId], references: [id], onDelete: Cascade)
 
   @@index([chatRoomId, createdAt])
-  @@index([userId, createdAt])
+  @@index([senderId, createdAt])
   @@map("messages")
 }

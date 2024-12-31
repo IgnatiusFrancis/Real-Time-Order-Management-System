@@ -48,7 +48,7 @@ export class OrderService {
       if (error instanceof Prisma.PrismaClientValidationError) {
         throw new HttpException(
           'An error occurred while creating order',
-          HttpStatus.BAD_REQUEST,
+          HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
       throw error;

@@ -1,4 +1,19 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
+import { ChatService } from './chat.service';
+import { JwtGuard } from 'src/utils';
+import { CurrentUser } from 'src/utils/decorators';
+import { User } from '@prisma/client';
 
 @Controller('chat')
-export class ChatController {}
+@UseGuards(JwtGuard)
+export class ChatController {
+  constructor(private readonly chatService: ChatService) {}
+
+  @Get(':chatRoomId/history')
+  async getChatHistory(
+    @CurrentUser() user: User,
+    @Param('chatRoomId') chatRoomId: string,
+  ) {
+    return this.chatService.getChatHistory(user.id, chatRoomId);
+  }
+}
