@@ -21,14 +21,13 @@ import {
 import { JwtGuard } from 'src/utils';
 import { Role } from 'src/utils/decorators/role.decorator';
 
-// Grouping the endpoints in Swagger
 @ApiTags('Orders')
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   /************************ CREATE ORDER *****************************/
-  @ApiBearerAuth('bearer')
+  @ApiBearerAuth()
   @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: 'Create a new order' })

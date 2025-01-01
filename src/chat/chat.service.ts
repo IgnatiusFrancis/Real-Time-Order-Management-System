@@ -5,11 +5,18 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { OrderStatus, Prisma, UserRole } from '@prisma/client';
+import {
+  ChatRoom,
+  Message,
+  OrderStatus,
+  Prisma,
+  UserRole,
+} from '@prisma/client';
 import { AuthService } from 'src/auth/auth.service';
 import { PrismaService } from 'src/utils';
 import { CloseChatDto } from './dto/close-chat.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
+import { GetResponse } from 'src/utils/interface/response.interface';
 
 @Injectable()
 export class ChatService {
@@ -39,7 +46,7 @@ export class ChatService {
     }
   }
 
-  async createMessage(createMessageDto: CreateMessageDto) {
+  async createMessage(createMessageDto: CreateMessageDto): Promise<Message> {
     try {
       const { chatRoomId, senderId, content } = createMessageDto;
       await this.authService.getUserById(senderId);
@@ -68,7 +75,7 @@ export class ChatService {
     }
   }
 
-  async closeChat(closeChatdto: CloseChatDto) {
+  async closeChat(closeChatdto: CloseChatDto): Promise<ChatRoom> {
     try {
       const { chatRoomId, summary } = closeChatdto;
       const chatRoom = await this.prismaService.chatRoom.findUnique({
@@ -104,14 +111,23 @@ export class ChatService {
     }
   }
 
-  async getChatHistory(userId: string, chatRoomId: string) {
+  async getChatHistory(
+    userId: string,
+    chatRoomId: string,
+  ): Promise<GetResponse<Message[]>> {
     try {
       const user = await this.authService.getUserById(userId);
       await this.validateAccess(user.id, chatRoomId, user.role);
-      return this.prismaService.message.findMany({
+      const messages = await this.prismaService.message.findMany({
         where: { chatRoomId },
         orderBy: { createdAt: 'asc' },
       });
+
+      return {
+        status: true,
+        message: 'Chat history fetched successfully',
+        data: messages,
+      };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientValidationError) {
         throw new HttpException(

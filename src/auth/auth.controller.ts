@@ -2,9 +2,10 @@ import { Controller, Post, Body, HttpStatus } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 
+@ApiTags('Auth')
 @Controller('auth/')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

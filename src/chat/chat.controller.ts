@@ -3,8 +3,11 @@ import { ChatService } from './chat.service';
 import { JwtGuard } from 'src/utils';
 import { CurrentUser } from 'src/utils/decorators';
 import { User } from '@prisma/client';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Chat')
 @Controller('chat')
+@ApiBearerAuth()
 @UseGuards(JwtGuard)
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}

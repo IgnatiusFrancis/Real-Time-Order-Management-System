@@ -28,9 +28,9 @@ export class AuthGuard implements CanActivate {
     if (!requiredRole) {
       return true;
     }
-    console.log(requiredRole);
+
     const user = await this.validateUser(context);
-    console.log(user);
+
     // Check if the user's role is included in the required roles
     const hasRequiredRole = requiredRole.includes(user.role);
 

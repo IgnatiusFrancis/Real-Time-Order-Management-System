@@ -32,10 +32,6 @@ async function bootstrap() {
     }),
   );
 
-  app.enableCors({
-    allowedHeaders: 'Authorization, Content-Type', // Make sure Authorization is allowed
-  });
-
   // Setup Swagger
   setupSwagger(app);
 
