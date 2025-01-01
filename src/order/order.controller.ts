@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { CurrentUser } from 'src/utils/decorators';
+import { CurrentUser } from '../utils/decorators';
 import { User, UserRole } from '@prisma/client';
 import {
   ApiTags,
@@ -19,8 +19,8 @@ import {
   ApiParam,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JwtGuard } from 'src/utils';
-import { Role } from 'src/utils/decorators/role.decorator';
+import { JwtGuard } from '../utils/guards';
+import { Role } from '../utils/decorators/role.decorator';
 
 @ApiTags('Orders')
 @Controller('order')

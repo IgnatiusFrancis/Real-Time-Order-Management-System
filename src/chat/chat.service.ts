@@ -6,15 +6,15 @@ import {
   Prisma,
   UserRole,
 } from '@prisma/client';
-import { AuthService } from 'src/auth/auth.service';
-import { PrismaService } from 'src/utils';
+import { AuthService } from '../auth/auth.service';
+import { PrismaService } from '../utils/prisma';
 import { CloseChatDto } from './dto/close-chat.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
-import { GetResponse } from 'src/utils/interface/response.interface';
+import { GetResponse } from '../utils/interface/response.interface';
 import {
   CustomWsException,
   WsStatus,
-} from 'src/utils/filters/custom-ws.exception';
+} from '../utils/filters/custom-ws.exception';
 
 @Injectable()
 export class ChatService {

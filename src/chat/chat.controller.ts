@@ -8,8 +8,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
-import { JwtGuard } from 'src/utils';
-import { CurrentUser } from 'src/utils/decorators';
+import { JwtGuard } from '../utils/guards';
+import { CurrentUser } from '../utils/decorators';
 import { User, UserRole } from '@prisma/client';
 import {
   ApiBearerAuth,
@@ -18,7 +18,7 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { CloseChatDto } from './dto/close-chat.dto';
-import { Role } from 'src/utils/decorators/role.decorator';
+import { Role } from '../utils/decorators/role.decorator';
 
 @ApiTags('Chat')
 @Controller('chat')

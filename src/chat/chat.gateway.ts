@@ -8,13 +8,13 @@ import {
 import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 import { Logger, UseGuards } from '@nestjs/common';
-import { WsGuard } from 'src/utils';
-import { JwtAuthService } from 'src/utils/token.generators';
+import { WsGuard } from '../utils/guards/ws.guard';
+import { JwtAuthService } from '../utils/token.generators';
 import { UserRole } from '@prisma/client';
 import {
   CustomWsException,
   WsStatus,
-} from 'src/utils/filters/custom-ws.exception';
+} from '../utils/filters/custom-ws.exception';
 
 @WebSocketGateway({ cors: true, namespace: '/api/v1/chat' })
 export class ChatGateway {

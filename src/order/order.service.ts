@@ -1,10 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { PrismaService } from 'src/utils';
+import { PrismaService } from '../utils/prisma';
 import { Order, OrderStatus, Prisma, UserRole } from '@prisma/client';
-import { AuthService } from 'src/auth/auth.service';
-import { GetResponse } from 'src/utils/interface/response.interface';
+import { AuthService } from '../auth/auth.service';
+import { GetResponse } from '../utils/interface/response.interface';
 
 @Injectable()
 export class OrderService {
