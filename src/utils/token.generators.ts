@@ -6,15 +6,16 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { UserRole } from '@prisma/client';
 import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class JwtAuthService {
   constructor(private readonly configService: ConfigService) {}
 
-  generateAuthToken(id: string) {
+  generateAuthToken(id: string, role: UserRole) {
     const secretKey = this.configService.get<string>('JWT_SECRET');
-    return jwt.sign({ id }, secretKey, {
+    return jwt.sign({ id, role }, secretKey, {
       expiresIn: '1d',
     });
   }

@@ -75,9 +75,14 @@ export class ChatService {
     }
   }
 
-  async closeChat(closeChatdto: CloseChatDto): Promise<ChatRoom> {
+  async closeChat(
+    userId: string,
+    chatRoomId: string,
+    closeChatdto: CloseChatDto,
+  ): Promise<ChatRoom> {
     try {
-      const { chatRoomId, summary } = closeChatdto;
+      await this.authService.getUserById(userId);
+      const { summary } = closeChatdto;
       const chatRoom = await this.prismaService.chatRoom.findUnique({
         where: { id: chatRoomId },
       });
@@ -137,5 +142,26 @@ export class ChatService {
       }
       throw error;
     }
+  }
+
+  async getUserChatRoomIds(userId: string): Promise<string[]> {
+    const orders = await this.prismaService.order.findMany({
+      where: { userId },
+      select: { chatRoom: { select: { id: true } } },
+    });
+
+    // Extract chat room IDs
+    return orders
+      .filter((order) => order.chatRoom !== null)
+      .map((order) => order.chatRoom!.id);
+  }
+
+  // Get all chat rooms (admin use case)
+  async getAllChatRoomIds(): Promise<string[]> {
+    const chatRooms = await this.prismaService.chatRoom.findMany({
+      select: { id: true },
+    });
+
+    return chatRooms.map((chatRoom) => chatRoom.id);
   }
 }

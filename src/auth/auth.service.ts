@@ -19,7 +19,7 @@ export class AuthService {
         createAuthDto.password,
       );
 
-      const token = this.jwtAuthService.generateAuthToken(user.id);
+      const token = this.jwtAuthService.generateAuthToken(user.id, user.role);
       return this.formatLoginResponse(user, token);
     } catch (error) {
       throw error;

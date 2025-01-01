@@ -20,7 +20,7 @@ export class WsGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const client = context.switchToWs().getClient();
     const token = client.handshake?.auth?.token;
-
+    console.log(token, client);
     if (!token) {
       throw new WsException('Unauthorized: Token is missing');
     }
