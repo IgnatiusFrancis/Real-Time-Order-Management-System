@@ -6,6 +6,7 @@ import {
   Param,
   HttpStatus,
   UseGuards,
+  Get,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -79,5 +80,17 @@ export class OrderController {
     @Param('id') orderId: string,
   ) {
     return await this.orderService.markOrderAsCompleted(user.id, orderId);
+  }
+
+  /************************ FETCH ALL ORDERS *****************************/
+
+  @Get()
+  @ApiOperation({ summary: 'Get all orders' })
+  @ApiResponse({
+    status: 200,
+    description: 'Orders fetched successfully',
+  })
+  async getOrders(@CurrentUser() user: User) {
+    return this.orderService.getOrders();
   }
 }

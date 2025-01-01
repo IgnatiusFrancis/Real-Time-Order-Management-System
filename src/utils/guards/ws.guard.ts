@@ -9,6 +9,7 @@ import {
 import { WsException } from '@nestjs/websockets';
 import { JwtAuthService } from '../token.generators';
 import { PrismaService } from '../prisma';
+import { CustomWsException, WsStatus } from '../filters/custom-ws.exception';
 
 @Injectable()
 export class WsGuard implements CanActivate {
@@ -19,12 +20,20 @@ export class WsGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const client = context.switchToWs().getClient();
-    const token = client.handshake?.auth?.token;
-    console.log(token, client);
-    if (!token) {
-      throw new WsException('Unauthorized: Token is missing');
+    const authorizationHeader: string = client.handshake.headers.authorization;
+
+    if (!authorizationHeader) {
+      throw new CustomWsException(
+        'Authorization header not provided',
+        WsStatus.NOT_FOUND,
+      );
     }
 
+    const token = authorizationHeader.split(' ')[1];
+
+    if (!token) {
+      throw new CustomWsException('Token not provided', WsStatus.NOT_FOUND);
+    }
     try {
       const decoded: any = this.jwtAuthService.decodeAuthToken(token);
 
@@ -35,14 +44,16 @@ export class WsGuard implements CanActivate {
       });
 
       if (!user) {
-        throw new HttpException('Invalid token', HttpStatus.BAD_REQUEST);
+        throw new CustomWsException('Invalid token', WsStatus.UNAUTHORIZED);
       }
 
-      // Attach user to the WebSocket handshake for further use
+      // Attach user to the WebSocket handshake for further use.
       client.handshake.auth.user = user;
+
       return true;
     } catch (error) {
-      throw new WsException('Unauthorized: Invalid or expired token');
+      console.log(error);
+      throw error;
     }
   }
 }

@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  ForbiddenException,
-  NotFoundException,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import {
   ChatRoom,
   Message,
@@ -17,6 +11,10 @@ import { PrismaService } from 'src/utils';
 import { CloseChatDto } from './dto/close-chat.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { GetResponse } from 'src/utils/interface/response.interface';
+import {
+  CustomWsException,
+  WsStatus,
+} from 'src/utils/filters/custom-ws.exception';
 
 @Injectable()
 export class ChatService {
@@ -49,14 +47,43 @@ export class ChatService {
   async createMessage(createMessageDto: CreateMessageDto): Promise<Message> {
     try {
       const { chatRoomId, senderId, content } = createMessageDto;
-      await this.authService.getUserById(senderId);
 
+      // Fetch the sender's details
+      const sender = await this.authService.getUserById(senderId);
+
+      if (!sender) {
+        throw new CustomWsException('Sender not found.', WsStatus.NOT_FOUND);
+      }
+
+      // Fetch the chat room along with its associated order and user
       const chatRoom = await this.prismaService.chatRoom.findUnique({
         where: { id: chatRoomId },
+        include: { order: { select: { userId: true } } },
       });
-      if (!chatRoom || chatRoom.isClosed)
-        throw new HttpException('Chat room is closed.', HttpStatus.BAD_REQUEST);
 
+      if (!chatRoom) {
+        throw new CustomWsException(
+          'Chat room does not exist.',
+          WsStatus.NOT_FOUND,
+        );
+      }
+
+      if (chatRoom.isClosed) {
+        throw new CustomWsException('Chat room is closed.', WsStatus.FORBIDDEN);
+      }
+
+      // Allow admins to send messages to any chat room
+      if (sender.role !== UserRole.ADMIN) {
+        // Check if the sender is the owner of the order associated with the chat room
+        if (chatRoom.order.userId !== senderId) {
+          throw new CustomWsException(
+            'You are not authorized to send messages in this room.',
+            WsStatus.FORBIDDEN,
+          );
+        }
+      }
+
+      // Create and return the message
       return this.prismaService.message.create({
         data: {
           chatRoomId: chatRoomId,
@@ -67,7 +94,7 @@ export class ChatService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientValidationError) {
         throw new HttpException(
-          'An error occurred while creating message',
+          'An error occurred while creating the message.',
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
@@ -125,6 +152,7 @@ export class ChatService {
       await this.validateAccess(user.id, chatRoomId, user.role);
       const messages = await this.prismaService.message.findMany({
         where: { chatRoomId },
+        include: { chatRoom: { select: { summary: true, isClosed: true } } },
         orderBy: { createdAt: 'asc' },
       });
 
@@ -145,23 +173,31 @@ export class ChatService {
   }
 
   async getUserChatRoomIds(userId: string): Promise<string[]> {
-    const orders = await this.prismaService.order.findMany({
-      where: { userId },
-      select: { chatRoom: { select: { id: true } } },
-    });
+    try {
+      const orders = await this.prismaService.order.findMany({
+        where: { userId },
+        select: { chatRoom: { select: { id: true } } },
+      });
 
-    // Extract chat room IDs
-    return orders
-      .filter((order) => order.chatRoom !== null)
-      .map((order) => order.chatRoom!.id);
+      // Extract chat room IDs
+      return orders
+        .filter((order) => order.chatRoom !== null)
+        .map((order) => order.chatRoom!.id);
+    } catch (error) {
+      throw error;
+    }
   }
 
   // Get all chat rooms (admin use case)
   async getAllChatRoomIds(): Promise<string[]> {
-    const chatRooms = await this.prismaService.chatRoom.findMany({
-      select: { id: true },
-    });
+    try {
+      const chatRooms = await this.prismaService.chatRoom.findMany({
+        select: { id: true },
+      });
 
-    return chatRooms.map((chatRoom) => chatRoom.id);
+      return chatRooms.map((chatRoom) => chatRoom.id);
+    } catch (error) {
+      throw error;
+    }
   }
 }

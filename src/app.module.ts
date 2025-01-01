@@ -3,7 +3,7 @@ import { ConfigModule, WsGuard } from './utils';
 import { AuthModule } from './auth/auth.module';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { UserInterceptor } from './utils/interceptors/user.interceptor';
-import { AllExceptionsFilter } from './utils/filters/httpExceptionFilter';
+import { GlobalExceptionFilter } from './utils/filters/httpExceptionFilter';
 import { JwtAuthService } from './utils/token.generators';
 import { OrderModule } from './order/order.module';
 import { ChatModule } from './chat/chat.module';
@@ -19,7 +19,7 @@ import { AuthGuard } from './utils/guards/role.guard';
     },
     {
       provide: 'APP_FILTER',
-      useClass: AllExceptionsFilter,
+      useClass: GlobalExceptionFilter,
     },
     {
       provide: APP_GUARD,

@@ -66,32 +66,62 @@ export class OrderService {
     userId: string,
     orderId: string,
   ): Promise<GetResponse<Order>> {
-    await this.authService.getUserById(userId);
+    try {
+      await this.authService.getUserById(userId);
 
-    const order = await this.prismaService.order.findUnique({
-      where: { id: orderId },
-    });
+      const order = await this.prismaService.order.findUnique({
+        where: { id: orderId },
+      });
 
-    if (!order) {
-      throw new HttpException('Order not found.', HttpStatus.NOT_FOUND);
+      if (!order) {
+        throw new HttpException('Order not found.', HttpStatus.NOT_FOUND);
+      }
+
+      if (order.status !== OrderStatus.PROCESSING) {
+        throw new HttpException(
+          `Order must be in ${OrderStatus.PROCESSING} state to be marked as ${OrderStatus.COMPLETED}. Current state: ${order.status}`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const updatedOrder = await this.prismaService.order.update({
+        where: { id: orderId },
+        data: { status: OrderStatus.COMPLETED },
+      });
+
+      return {
+        status: true,
+        message: 'Order successfully completed.',
+        data: updatedOrder,
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'An error occurred while marking order as completed',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw error;
     }
+  }
 
-    if (order.status !== OrderStatus.PROCESSING) {
-      throw new HttpException(
-        `Order must be in ${OrderStatus.PROCESSING} state to be marked as ${OrderStatus.COMPLETED}. Current state: ${order.status}`,
-        HttpStatus.BAD_REQUEST,
-      );
+  public async getOrders(): Promise<GetResponse<Order[]>> {
+    try {
+      const orders = await this.prismaService.order.findMany();
+
+      return {
+        status: true,
+        message: 'Orders retrieved successfully',
+        data: orders,
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'An error occurred while getting orders',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw error;
     }
-
-    const updatedOrder = await this.prismaService.order.update({
-      where: { id: orderId },
-      data: { status: OrderStatus.COMPLETED },
-    });
-
-    return {
-      status: true,
-      message: 'Order successfully completed.',
-      data: updatedOrder,
-    };
   }
 }
