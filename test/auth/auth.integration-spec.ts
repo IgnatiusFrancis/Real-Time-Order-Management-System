@@ -27,11 +27,11 @@ describe('Authentication System', () => {
     moduleFixture.useLogger(logger);
 
     // Clean up any pre-existing users
-    await prismaService.user.deleteMany({
-      where: {
-        OR: [{ email: userEmail }, { email: adminEmail }],
-      },
-    });
+    // await prismaService.user.deleteMany({
+    //   where: {
+    //     OR: [{ email: userEmail }, { email: adminEmail }],
+    //   },
+    // });
 
     await app.init();
   });
@@ -40,8 +40,10 @@ describe('Authentication System', () => {
   afterAll(async () => {
     if (createdUserId) {
       try {
-        await prismaService.user.delete({
-          where: { id: createdUserId },
+        await prismaService.user.deleteMany({
+          where: {
+            OR: [{ email: userEmail }, { email: adminEmail }],
+          },
         });
         logger.debug('User deleted after tests.');
       } catch (error) {
@@ -87,16 +89,16 @@ describe('Authentication System', () => {
       });
   });
 
-  /******************** SIGNIN USER *******************/
-  it('handles User signin request', async () => {
+  /******************** SIGNIN REQUEST *******************/
+  it('handles signin request', async () => {
     return await request(app.getHttpServer())
-      .post('/auth/signin')
+      .post('/auth/login')
       .send({ email: userEmail, password: userPassword })
-      // .expect(201)
+      .expect(201)
       .then((res) => {
-        console.log(res.body);
-        const { token } = res.body;
+        const { token, id } = res.body.result;
         authToken = token;
+        expect(id).toBeDefined();
         expect(token).toBeDefined();
       });
   });
