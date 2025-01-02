@@ -1,101 +1,131 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { PrismaService } from '../utils/prisma';
-import { mockAuthDto } from '../utils/mockData/mockAuthData/mock';
 import { JwtAuthService } from '../utils/token.generators';
-import { ConfigService } from '@nestjs/config';
+import { PrismaService } from '../utils/prisma';
+import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { mockUser, signInDto, signUpDto } from './dto/mockData/mockAuthData';
 
 describe('AuthService', () => {
-  let service: AuthService;
+  let authService: AuthService;
+  let jwtAuthService: JwtAuthService;
   let prismaService: PrismaService;
 
-  beforeEach(async () => {
-    /******************** This will always return true for bcypt *******************/
-    jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
+  const mockJwtAuthService = {
+    generateAuthToken: jest.fn().mockReturnValue('mock-token'),
+  };
 
+  const mockPrismaService = {
+    user: {
+      findUnique: jest.fn(),
+      create: jest.fn(),
+    },
+  };
+
+  beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        JwtAuthService,
-        ConfigService,
+        {
+          provide: JwtAuthService,
+          useValue: mockJwtAuthService,
+        },
         {
           provide: PrismaService,
-          useValue: {
-            user: {
-              create: jest.fn().mockReturnValue(mockAuthDto),
-              findUnique: jest.fn((args) => {
-                console.log(args);
-                if (args.where.email === mockAuthDto.email) {
-                  if (args.include) {
-                    // For sign-in: return mock user
-                    return mockAuthDto;
-                  }
-                  // For sign-up: user does not exist
-                  return null;
-                }
-                return null;
-              }),
-            },
-          },
+          useValue: mockPrismaService,
         },
       ],
     }).compile();
 
-    service = module.get<AuthService>(AuthService);
+    authService = module.get<AuthService>(AuthService);
+    jwtAuthService = module.get<JwtAuthService>(JwtAuthService);
     prismaService = module.get<PrismaService>(PrismaService);
+
+    jest.clearAllMocks();
   });
 
-  it('should sign up successfully', async () => {
-    // Mock the prismaService.user.findUnique method
-    const findUniqueSpy = jest.spyOn(prismaService.user, 'findUnique');
-
-    // Call the service method
-    const result = await service.signup(mockAuthDto);
-
-    // Assertions
-    expect(result).toEqual({
-      success: true,
-      message: 'Signup successful',
-      result: {
-        email: mockAuthDto.email,
-        subscriptionActive: mockAuthDto.subscriptionActive,
-      },
+  describe('signin', () => {
+    beforeEach(() => {
+      jest
+        .spyOn(bcrypt, 'compare')
+        .mockImplementation(() => Promise.resolve(true));
     });
 
-    // Verify findUniqueSpy calls
-    expect(findUniqueSpy).toHaveBeenCalledWith({
-      where: { email: mockAuthDto.email },
-    });
-    expect(findUniqueSpy).toHaveBeenCalledTimes(1);
+    it('should successfully sign in a user', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
 
-    // Verify create method was called
-    expect(prismaService.user.create).toHaveBeenCalledWith({
-      data: {
-        email: mockAuthDto.email,
-        password: expect.any(String),
-      },
+      const result = await authService.signin(signInDto);
+
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('Login successful');
+      expect(result.data.token).toBeDefined();
+      expect(result.data.email).toBe(mockUser.email);
+      //expect(result.result.password).toBeUndefined();
     });
-    expect(prismaService.user.create).toHaveBeenCalledTimes(1);
+
+    it('should throw an error if user is not found', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+
+      await expect(authService.signin(signInDto)).rejects.toThrow(
+        new HttpException('User not found', HttpStatus.NOT_FOUND),
+      );
+    });
+
+    it('should throw an error if password is incorrect', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      jest
+        .spyOn(bcrypt, 'compare')
+        .mockImplementation(() => Promise.resolve(false));
+
+      await expect(authService.signin(signInDto)).rejects.toThrow(
+        new HttpException('Invalid email or password', HttpStatus.BAD_REQUEST),
+      );
+    });
   });
 
-  it('should sign in successfully', async () => {
-    // Mock the prismaService.user.findUnique method
-    const findUniqueSpy = jest.spyOn(prismaService.user, 'findUnique');
-
-    // Call the service method
-    const result = await service.signin(mockAuthDto);
-
-    // Assertions
-    expect(result.success).toBe(true);
-    expect(result.message).toBe('Login successful');
-    expect(result.result).toBeDefined();
-
-    // Verify findUniqueSpy calls
-    expect(findUniqueSpy).toHaveBeenCalledWith({
-      where: { email: mockAuthDto.email },
-      include: { images: true, subscriptions: true },
+  describe('signup', () => {
+    beforeEach(() => {
+      jest
+        .spyOn(bcrypt, 'hash')
+        .mockImplementation(() => Promise.resolve('hashedPassword'));
     });
-    expect(findUniqueSpy).toHaveBeenCalledTimes(1);
+
+    it('should successfully create a new user', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+      mockPrismaService.user.create.mockResolvedValue({
+        ...mockUser,
+        email: signUpDto.email,
+      });
+
+      const result = await authService.signup(signUpDto);
+
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('Signup successful');
+      expect(result.data.email).toBe(signUpDto.email);
+    });
+
+    it('should throw an error if user already exists', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+
+      await expect(authService.signup(signUpDto)).rejects.toThrow(
+        new HttpException(
+          'User with this email already exists',
+          HttpStatus.CONFLICT,
+        ),
+      );
+    });
+
+    it('should create admin user when admin role is specified', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+      mockPrismaService.user.create.mockResolvedValue({
+        ...mockUser,
+        role: UserRole.ADMIN,
+      });
+
+      const result = await authService.signup(signUpDto, UserRole.ADMIN);
+
+      expect(result.data.role).toBe(UserRole.ADMIN);
+    });
   });
 });

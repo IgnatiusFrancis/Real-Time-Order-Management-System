@@ -20,6 +20,7 @@ export class AuthService {
       );
 
       const token = this.jwtAuthService.generateAuthToken(user.id, user.role);
+
       return this.formatLoginResponse(user, token);
     } catch (error) {
       throw error;
@@ -37,6 +38,7 @@ export class AuthService {
         hashedPassword,
         role ? role : UserRole.USER,
       );
+
       return this.formatSignupResponse(newUser);
     } catch (error) {
       throw error;
@@ -114,7 +116,7 @@ export class AuthService {
     return {
       success: true,
       message: 'Login successful',
-      result: {
+      data: {
         ...data,
         token,
       },
@@ -127,7 +129,7 @@ export class AuthService {
     const c = {
       success: true,
       message: 'Signup successful',
-      result: {
+      data: {
         ...data,
       },
     };
