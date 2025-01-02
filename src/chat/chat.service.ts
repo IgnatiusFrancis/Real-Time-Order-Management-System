@@ -106,7 +106,7 @@ export class ChatService {
     userId: string,
     chatRoomId: string,
     closeChatdto: CloseChatDto,
-  ): Promise<ChatRoom> {
+  ): Promise<GetResponse<ChatRoom>> {
     try {
       await this.authService.getUserById(userId);
       const { summary } = closeChatdto;
@@ -131,7 +131,11 @@ export class ChatService {
         data: { status: OrderStatus.PROCESSING },
       });
 
-      return updatedChat;
+      return {
+        status: true,
+        message: 'Chat successfully closed',
+        data: updatedChat,
+      };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientValidationError) {
         throw new HttpException(

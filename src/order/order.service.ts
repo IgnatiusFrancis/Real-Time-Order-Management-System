@@ -107,11 +107,15 @@ export class OrderService {
 
   public async getOrders(): Promise<GetResponse<Order[]>> {
     try {
-      const orders = await this.prismaService.order.findMany();
+      const orders = await this.prismaService.order.findMany({
+        include: {
+          chatRoom: true,
+        },
+      });
 
       return {
         status: true,
-        message: 'Orders retrieved successfully',
+        message: 'Orders with chats retrieved successfully',
         data: orders,
       };
     } catch (error) {

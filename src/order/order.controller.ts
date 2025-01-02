@@ -85,6 +85,8 @@ export class OrderController {
   /************************ FETCH ALL ORDERS *****************************/
 
   @Get()
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
   @ApiOperation({ summary: 'Get all orders' })
   @ApiResponse({
     status: 200,
