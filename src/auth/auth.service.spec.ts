@@ -45,6 +45,7 @@ describe('AuthService', () => {
     jest.clearAllMocks();
   });
 
+  /************************ MOCK signin *****************************/
   describe('signin', () => {
     beforeEach(() => {
       jest
@@ -61,7 +62,6 @@ describe('AuthService', () => {
       expect(result.message).toBe('Login successful');
       expect(result.data.token).toBeDefined();
       expect(result.data.email).toBe(mockUser.email);
-      //expect(result.result.password).toBeUndefined();
     });
 
     it('should throw an error if user is not found', async () => {
@@ -84,6 +84,7 @@ describe('AuthService', () => {
     });
   });
 
+  /************************ MOCK signup *****************************/
   describe('signup', () => {
     beforeEach(() => {
       jest

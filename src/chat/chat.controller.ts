@@ -27,6 +27,7 @@ import { Role } from '../utils/decorators/role.decorator';
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
+  /************************ getChatHistory *****************************/
   @Get(':chatRoomId/history')
   @ApiOperation({ summary: 'Get chat history for a specific room' })
   @ApiResponse({
@@ -44,6 +45,9 @@ export class ChatController {
     return this.chatService.getChatHistory(user.id, chatRoomId);
   }
 
+  /************************ closeChat *****************************/
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
   @Patch(':chatRoomId/close')
   @Role(UserRole.ADMIN)
   @ApiOperation({ summary: 'Close a chat room' })

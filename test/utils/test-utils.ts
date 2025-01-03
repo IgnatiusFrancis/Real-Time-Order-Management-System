@@ -47,8 +47,8 @@ export const signupAndLogin = async (
     .expect(201);
 
   return {
-    id: response.body.result.id,
-    token: response.body.result.token,
+    id: response.body.data.id,
+    token: response.body.data.token,
   };
 };
 

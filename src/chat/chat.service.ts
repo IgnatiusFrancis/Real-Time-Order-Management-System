@@ -48,7 +48,6 @@ export class ChatService {
     try {
       const { chatRoomId, senderId, content } = createMessageDto;
 
-      // Fetch the sender's details
       const sender = await this.authService.getUserById(senderId);
 
       if (!sender) {
@@ -75,7 +74,7 @@ export class ChatService {
       // Allow admins to send messages to any chat room
       if (sender.role !== UserRole.ADMIN) {
         // Check if the sender is the owner of the order associated with the chat room
-        console.log(chatRoom.order.userId, senderId);
+
         if (chatRoom.order.userId !== senderId) {
           throw new CustomWsException(
             'You are not authorized to send messages in this room.',
@@ -84,7 +83,6 @@ export class ChatService {
         }
       }
 
-      // Create and return the message
       return this.prismaService.message.create({
         data: {
           chatRoomId: chatRoomId,

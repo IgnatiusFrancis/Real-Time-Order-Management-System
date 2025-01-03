@@ -21,6 +21,8 @@ describe('ChatService (Integration)', () => {
   let prismaService: PrismaService;
   let chatRoomId: string | null = null;
   let logger: Logger | undefined;
+  let email = 'testuser2@example.com';
+  let password = 'testpassword';
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -34,13 +36,18 @@ describe('ChatService (Integration)', () => {
     );
 
     await app.init();
+    prismaService = moduleFixture.get<PrismaService>(PrismaService);
+
+    // Ensure no pre-existing user to avoid conflicts
+    const existingUser = await prismaService.user.findUnique({
+      where: { email },
+    });
+    if (existingUser) {
+      await deleteUser(prismaService, existingUser.id);
+    }
 
     // Create and authenticate a test user
-    const res = await signupAndLogin(
-      app,
-      'testuser2@example.com',
-      'testpassword',
-    );
+    const res = await signupAndLogin(app, email, password);
 
     authToken = res.token;
     createdUserId = res.id;
@@ -48,8 +55,6 @@ describe('ChatService (Integration)', () => {
     const order = await createOrderAndChatRoom(app, authToken);
 
     chatRoomId = order.chatRoomId;
-
-    prismaService = moduleFixture.get<PrismaService>(PrismaService);
   });
 
   afterAll(async () => {

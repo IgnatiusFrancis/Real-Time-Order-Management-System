@@ -19,6 +19,8 @@ describe('OrderService (Integration)', () => {
   let orderId: string | null = null;
   let prismaService: PrismaService;
   let logger: Logger | undefined;
+  let email = 'testuser1@example.com';
+  let password = 'testpassword';
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -32,18 +34,21 @@ describe('OrderService (Integration)', () => {
     );
 
     await app.init();
+    prismaService = moduleFixture.get<PrismaService>(PrismaService);
+
+    // Ensure no pre-existing user to avoid conflicts
+    const existingUser = await prismaService.user.findUnique({
+      where: { email },
+    });
+    if (existingUser) {
+      await deleteUser(prismaService, existingUser.id);
+    }
 
     // Create and authenticate a test user
-    const res = await signupAndLogin(
-      app,
-      'testuser1@example.com',
-      'testpassword',
-    );
+    const res = await signupAndLogin(app, email, password);
 
     authToken = res.token;
     createdUserId = res.id;
-
-    prismaService = moduleFixture.get<PrismaService>(PrismaService);
   });
 
   afterAll(async () => {

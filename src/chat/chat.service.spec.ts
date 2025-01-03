@@ -64,6 +64,7 @@ describe('ChatService', () => {
     jest.clearAllMocks();
   });
 
+  /************************ MOCK  getChatHistory *****************************/
   describe('getChatHistory', () => {
     it('should return chat history for a valid user and chat room', async () => {
       // Mocking methods
@@ -107,6 +108,7 @@ describe('ChatService', () => {
     });
   });
 
+  /************************ MOCK  createMessage *****************************/
   describe('createMessage', () => {
     it('should create a new message', async () => {
       mockAuthService.getUserById.mockResolvedValue(mockUser);
@@ -148,6 +150,7 @@ describe('ChatService', () => {
     });
   });
 
+  /************************ MOCK  closeChat *****************************/
   describe('closeChat', () => {
     const closeChatDto: CloseChatDto = { summary: 'Chat closed successfully' };
 
@@ -187,6 +190,7 @@ describe('ChatService', () => {
     });
   });
 
+  /************************ MOCK  validateAccess *****************************/
   describe('validateAccess', () => {
     it('should throw an error if the user does not have access', async () => {
       mockAuthService.getUserById.mockResolvedValue(mockUser);

@@ -31,6 +31,7 @@ describe('AuthController', () => {
     jest.clearAllMocks();
   });
 
+  /************************ MOCK userSignup *****************************/
   describe('userSignup', () => {
     it('should create a new user successfully', async () => {
       const expectedResponse = {
@@ -62,6 +63,7 @@ describe('AuthController', () => {
     });
   });
 
+  /************************ MOCK adminSignup *****************************/
   describe('adminSignup', () => {
     it('should create a new admin successfully', async () => {
       const expectedResponse = {
@@ -96,6 +98,7 @@ describe('AuthController', () => {
     });
   });
 
+  /************************ MOCK login *****************************/
   describe('login', () => {
     it('should authenticate user successfully', async () => {
       const expectedResponse = {

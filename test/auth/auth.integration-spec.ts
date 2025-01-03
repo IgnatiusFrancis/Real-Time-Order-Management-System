@@ -40,7 +40,7 @@ describe('Authentication System', () => {
         });
         logger.debug('User deleted after tests.');
       } catch (error) {
-        // Ignore if user does not exist (for example, if creation failed)
+        // Ignore if user does not exist
         logger.warn('User deletion failed or user does not exist.');
       }
     }
@@ -54,7 +54,7 @@ describe('Authentication System', () => {
       .send({ email: userEmail, password: userPassword })
       .expect(201)
       .then((res) => {
-        const { id, email: responseEmail, role } = res.body.result;
+        const { id, email: responseEmail, role } = res.body.data;
         createdUserId = id;
 
         // Ensure response data is valid
@@ -72,7 +72,7 @@ describe('Authentication System', () => {
       .send({ email: adminEmail, password: adminPassword })
       .expect(201)
       .then((res) => {
-        const { id, email: responseEmail, role } = res.body.result;
+        const { id, email: responseEmail, role } = res.body.data;
         createdUserId = id;
 
         expect(id).toBeDefined();
@@ -89,7 +89,7 @@ describe('Authentication System', () => {
       .send({ email: userEmail, password: userPassword })
       .expect(201)
       .then((res) => {
-        const { token, id } = res.body.result;
+        const { token, id } = res.body.data;
         authToken = token;
         expect(id).toBeDefined();
         expect(token).toBeDefined();

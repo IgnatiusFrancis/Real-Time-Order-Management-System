@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { User, UserRole } from '@prisma/client';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { JwtAuthService } from '../utils/token.generators';
 import { PrismaService } from '../utils/prisma';
