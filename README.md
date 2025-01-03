@@ -20,6 +20,7 @@ This project implements a robust order management system with real-time chat cap
 - [Testing](#testing)
   - [Unit Tests](#unit-tests)
   - [Integration Tests](#integration-tests)
+- [WebSocket Testing Guide](#webSocket-testing-guide)
 - [Technical Implementation](#technical-implementation)
 - [Nice-to-Have Features (Planned)](#nice-to-have-features-planned)
 - [Development Challenges](#development-challenges)
@@ -99,7 +100,7 @@ Swagger UI: Access the Swagger documentation at http://localhost:2025/documentat
 
 Postman Collection: Link to Postman Collection [API Documentation](https://www.postman.com/planetary-trinity-671710/checkit/documentation/ke2mwnl/checkit?workspaceId=d620d662-3204-4e2f-925a-f7ba8b7e80c7)
 
-Recommended for WebSocket testing due to better WebSocket support compared to Swagger
+Note: Postman is recommended for WebSocket testing due to better WebSocket support compared to Swagger
 
 ## Testing
 
@@ -135,6 +136,28 @@ npm run test:e2e
 
 ```
 
+## WebSocket Testing Guide
+
+This system features a WebSocket-based chat functionality for real-time communication. Follow the steps below to connect and interact with the WebSocket server.
+
+Prerequisites
+Ensure the server is running and that you have a valid JWT token for authorization.
+
+Steps to Test WebSocket
+
+1.  Connect to the WebSocket Server through localhost:2025/api/v1/chat as documented in postman and provide Authorization: Bearer <your_jwt_token> in the header section.
+
+2.  Supported Events
+    The system listens for the following events:
+    . message: Used to handle real-time chat messages.
+    . error: Used to handle any WsException errors.
+
+3.  Sending a Chat Message
+    To send a message:
+    . Click on the "Messages" tab in Postman.
+    . Ensure that the payload format is set to JSON.
+    . In the Field input box, type sendMessage. This is the event name the server listens for.
+
 ## Technical Implementation
 
 Core Requirements Implemented
@@ -154,7 +177,7 @@ Core Requirements Implemented
     . Automatic chat room creation per order
     . Persistent message storage
     . Admin-controlled room closure
-    . Chat history visibility
+    . Chat history visibility etc
 
 ## Nice-to-Have Features (Planned)
 
@@ -184,12 +207,9 @@ To contribute to this project, please follow these guidelines:
 
 - Fork the repository.
 - Create a feature branch (git checkout -b feature/your-feature).
-- Commit your changes (git commit -am 'Add new feature').
+- Commit your changes (git commit -m 'Add new feature').
 - Push to the branch (git push origin feature/your-feature).
 - Open a pull request.
-  ...
-
-...
 
 ## Contact
 

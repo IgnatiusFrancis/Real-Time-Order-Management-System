@@ -116,11 +116,11 @@ export class ChatGateway {
   @SubscribeMessage('sendMessage')
   async handleSendMessage(
     @MessageBody()
-    data: { chatRoomId: string; senderId: string; content: string },
+    data: { chatRoomId: string; content: string },
     @ConnectedSocket() client: Socket,
   ) {
     try {
-      if (!data.chatRoomId || !data.senderId || !data.content) {
+      if (!data.chatRoomId || !data.content) {
         throw new CustomWsException(
           'Invalid message data',
           WsStatus.BAD_REQUEST,
@@ -128,10 +128,18 @@ export class ChatGateway {
         );
       }
 
+      const userId = Array.from(this.socketMap.entries()).find(
+        ([_, value]) => value.socketId === client.id,
+      )?.[0];
+
       this.logger.debug(
-        `Creating chat message for room: room-${data.chatRoomId}`,
+        `Creating chat message for user ${userId} in room: room-${data.chatRoomId}`,
       );
-      const message = await this.chatService.createMessage(data);
+
+      const message = await this.chatService.createMessage({
+        ...data,
+        senderId: userId,
+      });
 
       const roomId = `room-${data.chatRoomId}`;
       this.server.to(roomId).emit('message', message);

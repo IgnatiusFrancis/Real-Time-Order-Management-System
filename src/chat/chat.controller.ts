@@ -47,7 +47,6 @@ export class ChatController {
 
   /************************ closeChat *****************************/
   @ApiBearerAuth()
-  @UseGuards(JwtGuard)
   @Patch(':chatRoomId/close')
   @Role(UserRole.ADMIN)
   @ApiOperation({ summary: 'Close a chat room' })
