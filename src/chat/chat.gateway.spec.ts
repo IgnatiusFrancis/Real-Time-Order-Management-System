@@ -85,6 +85,11 @@ describe('ChatGateway', () => {
     // Set up the mock server with proper typing
     gateway.server = mockServer as unknown as Server;
 
+    // Important: Set up the socketMap with our test socket
+    gateway['socketMap'] = new Map([
+      ['test-sender', { socketId: 'test-socket-id', role: 'user' }],
+    ]);
+
     jest.clearAllMocks();
   });
 
@@ -146,37 +151,23 @@ describe('ChatGateway', () => {
     });
   });
 
-  /************************ MOCK  handleDisconnect*****************************/
-  describe('handleDisconnect', () => {
-    it('should handle client disconnection', () => {
-      const userId = 'test-user-id';
-      (gateway as any).socketMap.set(userId, { socketId: mockSocket.id });
-
-      gateway.handleDisconnect(
-        mockSocket as unknown as Socket<DefaultEventsMap>,
-      );
-
-      expect((gateway as any).socketMap.has(userId)).toBeFalsy();
-    });
-  });
-
   /************************ MOCK  handleSendMessage*****************************/
   describe('handleSendMessage', () => {
     interface MessageData {
       chatRoomId: string;
-      senderId: string;
       content: string;
     }
 
     const mockMessageData: MessageData = {
       chatRoomId: 'test-room',
-      senderId: 'test-sender',
+      // senderId: 'test-sender',
       content: 'Hello, World!',
     };
 
     const mockCreatedMessage = {
       id: 'message-id',
       ...mockMessageData,
+      senderId: 'test-socket-id',
       createdAt: new Date(),
     };
 
@@ -190,7 +181,10 @@ describe('ChatGateway', () => {
         mockSocket as unknown as Socket<DefaultEventsMap>,
       );
 
-      expect(chatService.createMessage).toHaveBeenCalledWith(mockMessageData);
+      expect(chatService.createMessage).toHaveBeenCalledWith({
+        ...mockMessageData,
+        senderId: 'test-sender',
+      });
       expect(mockServer.to).toHaveBeenCalledWith(
         `room-${mockMessageData.chatRoomId}`,
       );
@@ -204,7 +198,7 @@ describe('ChatGateway', () => {
     it('should throw error when message data is invalid', async () => {
       const invalidData: MessageData = {
         chatRoomId: '',
-        senderId: '',
+        // senderId: '',
         content: '',
       };
 

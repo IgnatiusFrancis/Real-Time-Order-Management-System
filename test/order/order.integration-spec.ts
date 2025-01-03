@@ -65,7 +65,7 @@ describe('OrderService (Integration)', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .send(createOrderDto)
         .expect(201);
-
+      orderId = response.body.data.order.id;
       expect(response.body).toHaveProperty('status', true);
       expect(response.body).toHaveProperty(
         'message',
@@ -96,10 +96,6 @@ describe('OrderService (Integration)', () => {
 
           // Ensure at least one order exists and retrieve its ID
           expect(orders.length).toBeGreaterThan(0);
-          const firstOrder = orders[0];
-          // Store the first order ID for subsequent tests
-
-          orderId = firstOrder.id;
 
           // Assertions for each order
           expect(id).toBeDefined();
