@@ -237,4 +237,18 @@ describe('ChatGateway', () => {
       );
     });
   });
+
+  /************************ MOCK  handleDisconnect*****************************/
+  describe('handleDisconnect', () => {
+    it('should handle client disconnection', () => {
+      const userId = 'test-user-id';
+      (gateway as any).socketMap.set(userId, { socketId: mockSocket.id });
+
+      gateway.handleDisconnect(
+        mockSocket as unknown as Socket<DefaultEventsMap>,
+      );
+
+      expect((gateway as any).socketMap.has(userId)).toBeFalsy();
+    });
+  });
 });

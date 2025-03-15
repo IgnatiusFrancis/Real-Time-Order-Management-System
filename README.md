@@ -158,7 +158,7 @@ Steps to Test WebSocket
     . Ensure that the payload format is set to JSON.
     . In the Field input box, type sendMessage. This is the event name the server listens for.
 
-## Technical Implementation
+<!-- ## Technical Implementation
 
 Core Requirements Implemented
 
@@ -177,7 +177,7 @@ Core Requirements Implemented
     . Automatic chat room creation per order
     . Persistent message storage
     . Admin-controlled room closure
-    . Chat history visibility etc
+    . Chat history visibility etc -->
 
 ## Nice-to-Have Features (Planned)
 
@@ -190,7 +190,7 @@ Core Requirements Implemented
     . Bull Queue for handling chat messages
     . Horizontal scaling capabilities
 
-## Development Challenges
+<!-- ## Development Challenges
 
 1.  Time Management:
     . Met tight deadlines during festive period
@@ -199,7 +199,7 @@ Core Requirements Implemented
 2.  Technical Challenges:
     . Implementing real-time WebSocket communication
     . Ensuring proper state management across the system
-    . Maintaining test coverage while adding features
+    . Maintaining test coverage while adding features -->
 
 ## Contributing
 
