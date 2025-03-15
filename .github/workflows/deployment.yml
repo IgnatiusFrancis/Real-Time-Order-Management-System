@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: 18
 
-      - name: Cache npm dependencies
+      - name: Cache npm dependencies.
         uses: actions/cache@v3
         with:
           path: ~/.npm
