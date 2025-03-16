@@ -164,10 +164,10 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U test_user"
-          --health-interval 10s
+          --health-cmd "pg_isready -U test_user -d test_db"
+          --health-interval 5s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
 
     steps:
       - name: Checkout Code
@@ -178,19 +178,16 @@ jobs:
         with:
           node-version: 18
 
-      - name: Cache npm dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
-
       - name: Install Dependencies
         run: npm ci
 
-      - name: Wait for PostgreSQL to be ready (10s delay)
-        run: sleep 10
+      - name: Wait for Database to be Ready
+        run: |
+          for i in {1..20}; do
+            npx prisma db execute --url="postgresql://test_user:test_password@postgres:5432/test_db" --stdin <<< "SELECT 1" && break
+            echo "Waiting for database... ($i/20)"
+            sleep 2
+          done
 
       - name: Apply Prisma Migrations
         env:
