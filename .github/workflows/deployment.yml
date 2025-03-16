@@ -1,3 +1,116 @@
+# name: Order Management CI/CD Pipeline
+
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#     branches:
+#       - main
+#   workflow_dispatch:
+
+# jobs:
+#   lint-and-security:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v4
+
+#       - name: Set up Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: 18
+
+#       - name: Cache npm dependencies.
+#         uses: actions/cache@v3
+#         with:
+#           path: ~/.npm
+#           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+#           restore-keys: |
+#             ${{ runner.os }}-npm-
+
+#       - name: Install Dependencies
+#         run: npm ci
+
+#       - name: Run Linter
+#         run: npm run lint
+
+#       - name: Security Audit
+#         run: npm audit --audit-level=critical
+
+#   test:
+#     runs-on: ubuntu-latest
+#     needs: lint-and-security
+#     services:
+#       postgres:
+#         image: postgres:15
+#         env:
+#           POSTGRES_USER: test_user
+#           POSTGRES_PASSWORD: test_password
+#           POSTGRES_DB: test_db
+#         ports:
+#           - 5432:5432
+#         options: >-
+#           --health-cmd "pg_isready -U test_user"
+#           --health-interval 10s
+#           --health-timeout 5s
+#           --health-retries 5
+
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v4
+
+#       - name: Set up Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: 18
+
+#       - name: Install Dependencies
+#         run: npm ci
+
+#       - name: Apply Prisma Migrations
+#         env:
+#           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+#         run: npx prisma migrate deploy
+
+#       - name: Run Unit & Integration Tests
+#         run: npm run test
+
+#       - name: Check Test Coverage
+#         run: npm run test:coverage
+
+#   deploy:
+#     runs-on: ubuntu-latest
+#     needs: test
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v4
+
+#       - name: Set up SSH
+#         run: |
+#           echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key
+#           chmod 600 private_key
+
+#       - name: Fake Deployment (For Learning)
+#         run: echo "Deploying application..."
+
+#   rollback:
+#     runs-on: ubuntu-latest
+#     if: failure()
+#     steps:
+#       - name: Rollback to Last Stable Release
+#         run: echo "Rolling back..."
+
+#   notify-on-failure:
+#     runs-on: ubuntu-latest
+#     if: failure()
+#     steps:
+#       - name: Send Slack Alert
+#         run: |
+#           curl -X POST -H 'Content-type: application/json' --data '{
+#             "text": "🚨 *Build or Deployment Failed!* Check GitHub Actions logs."
+#           }' ${{ secrets.SLACK_WEBHOOK_URL }}
+
 name: Order Management CI/CD Pipeline
 
 on:
@@ -21,7 +134,7 @@ jobs:
         with:
           node-version: 18
 
-      - name: Cache npm dependencies.
+      - name: Cache npm dependencies
         uses: actions/cache@v3
         with:
           path: ~/.npm
@@ -65,12 +178,23 @@ jobs:
         with:
           node-version: 18
 
+      - name: Cache npm dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
       - name: Install Dependencies
         run: npm ci
 
+      - name: Wait for PostgreSQL to be ready (10s delay)
+        run: sleep 10
+
       - name: Apply Prisma Migrations
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: 'postgresql://test_user:test_password@postgres:5432/test_db'
         run: npx prisma migrate deploy
 
       - name: Run Unit & Integration Tests
@@ -92,14 +216,14 @@ jobs:
           chmod 600 private_key
 
       - name: Fake Deployment (For Learning)
-        run: echo "Deploying application..."
+        run: echo "🚀 Deploying application..."
 
   rollback:
     runs-on: ubuntu-latest
     if: failure()
     steps:
       - name: Rollback to Last Stable Release
-        run: echo "Rolling back..."
+        run: echo "🔄 Rolling back to last stable version..."
 
   notify-on-failure:
     runs-on: ubuntu-latest
@@ -108,5 +232,5 @@ jobs:
       - name: Send Slack Alert
         run: |
           curl -X POST -H 'Content-type: application/json' --data '{
-            "text": "🚨 *Build or Deployment Failed!* Check GitHub Actions logs."
+            "text": "🚨 *Build or Deployment Failed!* Job: ${{ github.job }} | Repo: ${{ github.repository }} | Commit: ${{ github.sha }} | Check GitHub Actions logs."
           }' ${{ secrets.SLACK_WEBHOOK_URL }}
