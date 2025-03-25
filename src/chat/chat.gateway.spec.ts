@@ -175,7 +175,7 @@ describe('ChatGateway', () => {
       mockChatService.createMessage.mockResolvedValue(mockCreatedMessage);
     });
 
-    it('should handle sending message successfully', async () => {
+    it('should handle sending message successfully...', async () => {
       const result = await gateway.handleSendMessage(
         mockMessageData,
         mockSocket as unknown as Socket<DefaultEventsMap>,
