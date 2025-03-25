@@ -239,7 +239,7 @@ describe('ChatGateway', () => {
   });
 
   /************************ MOCK  handleDisconnect*****************************/
-  describe('handleDisconnect', () => {
+  describe('handleDisconnect...', () => {
     it('should handle client disconnection', () => {
       const userId = 'test-sender';
       (gateway as any).socketMap.set(userId, { socketId: mockSocket.id });
